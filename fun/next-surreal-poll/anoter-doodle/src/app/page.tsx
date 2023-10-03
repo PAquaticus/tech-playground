@@ -1,7 +1,15 @@
 "use client";
 
 import React from "react";
-import { useReactTable, Column, Row, Cell } from "@tanstack/react-table";
+import {
+  useReactTable,
+  Column,
+  Row,
+  Cell,
+  ColumnDef,
+  getCoreRowModel,
+  flexRender,
+} from "@tanstack/react-table";
 
 interface Data {
   col1: string;
@@ -10,19 +18,19 @@ interface Data {
 }
 
 export default function Home() {
-  const columns = React.useMemo<Column<Data>[]>(
+  const columns = React.useMemo<ColumnDef<Data, any>[]>(
     () => [
       {
-        Header: "Header 1",
-        accessor: "col1",
+        header: "header 1",
+        accessorKey: "col1",
       },
       {
-        Header: "Header 2",
-        accessor: "col2",
+        header: "header 2",
+        accessorKey: "col2",
       },
       {
-        Header: "Header 3",
-        accessor: "col3",
+        header: "header 3",
+        accessorKey: "col3",
       },
     ],
     []
@@ -44,7 +52,11 @@ export default function Home() {
     []
   );
 
-  const table = useReactTable<Data>({ columns, data });
+  const table = useReactTable<Data>({
+    columns,
+    data,
+    getCoreRowModel: getCoreRowModel(),
+  });
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900">
@@ -55,37 +67,34 @@ export default function Home() {
       <div className="bg-white p-6 rounded-lg shadow-lg w-3/4 h-4/5 flex flex-col justify-between">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-800">
-            {table.headerGroups.map((headerGroup, hgIndex) => (
-              <tr {...headerGroup.getHeaderGroupProps()} key={hgIndex}>
-                {headerGroup.headers.map((column, hIndex) => (
+            {table.getHeaderGroups().map((headerGroup) => (
+              <tr key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
                   <th
-                    {...column.getHeaderProps()}
+                    key={header.id}
                     className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider"
-                    key={hIndex}
                   >
-                    {column.render("Header")}
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                   </th>
                 ))}
               </tr>
             ))}
           </thead>
           <tbody className="bg-white divide-y divide-gray-200 text-gray-900">
-            {table.rows.map((row: Row<Data>, rIndex) => {
-              table.prepareRow(row);
-              return (
-                <tr {...row.getRowProps()} key={rIndex}>
-                  {row.cells.map((cell: Cell<Data>, cIndex) => (
-                    <td
-                      {...cell.getCellProps()}
-                      className="px-6 py-4 whitespace-nowrap"
-                      key={cIndex}
-                    >
-                      {cell.render("Cell")}
-                    </td>
-                  ))}
-                </tr>
-              );
-            })}
+            {table.getRowModel().rows.map((row) => (
+              <tr key={row.id}>
+                {row.getVisibleCells().map((cell) => (
+                  <td className="px-6 py-4 whitespace-nowrap" key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                ))}
+              </tr>
+            ))}
           </tbody>
         </table>
         <footer className="mt-4 text-center">
